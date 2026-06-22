@@ -664,10 +664,11 @@ const CHANNELS = [
     number: '00', isEmbed: true,
     url: 'https://veotest.bbvplayline1a.com/video.html?url=https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8'
   },
-   {
+ {
     id: 'prime-sports', name: 'Prime Sports Live', category: 'Sports',
-    logo: '', number: '04', isDash: true,
-    url: 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/72sjo8hygl/out/v1/3079be34d72a4985852d299a02406a0c/'
+    logo: 'https://imglink.cc/cdn/kIiut6WBq0.jpg',
+    number: '04',
+    url: 'https://ch.eznzer.online/new1_720/index.m3u8'
   },
   {
     id: '12305', name: 'Caze TV Brasil', category: 'Sports',
@@ -687,7 +688,7 @@ const CHANNELS = [
     number: '03',
     url: 'https://amg01334-amg01334c2-freelivesports-emea-6791.playouts.now.amagi.tv/playlist/amg01334-beinxtra-beinxtrausapp-freelivesportsemea/playlist.m3u8'
   },
-
+ 
   {
     id: '12318', name: 'FIFA+ Argentina', category: 'Sports',
     logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
@@ -928,20 +929,24 @@ function initDashPlayer(ch, useProxy) {
     return;
   }
 
-  // Ensure video is visible and inside player-frame
   $video.style.display = 'block';
 
-  // Construct Shaka player directly on the video element (Shaka v4 API)
+  // Shaka v4.7+ preferred API: create detached, then attach()
   let player;
   try {
-    player = new Shaka.Player($video);
+    player = new Shaka.Player();
+    player.attach($video);
   } catch(e) {
-    console.error('Shaka init error:', e);
-    showOverlay('DASH INIT FAILED');
-    return;
+    // Fallback for older shaka bundles
+    try { player = new Shaka.Player($video); } catch(e2) {
+      console.error('Shaka init error:', e2);
+      showOverlay('DASH INIT FAILED');
+      return;
+    }
   }
   shakaInstance = player;
 
+  // Only use config keys valid in Shaka v4 (smallGapLimit/jumpLargeGaps removed)
   player.configure({
     streaming: {
       bufferingGoal: 30,
@@ -949,8 +954,6 @@ function initDashPlayer(ch, useProxy) {
       bufferBehind: 60,
       ignoreTextStreamFailures: true,
       startAtSegmentBoundary: true,
-      smallGapLimit: 0.5,
-      jumpLargeGaps: true,
     },
     abr: {
       enabled: true,
@@ -958,21 +961,16 @@ function initDashPlayer(ch, useProxy) {
     },
   });
 
-  // Listen for errors
-  player.addEventListener('error', (e) => {
-    console.error('Shaka error event:', e.detail);
-    if (!useProxy) {
-      showOverlay('DASH ERROR - RETRYING...');
-      setTimeout(() => playChannel(ch.id, true), 1500);
-    } else {
-      showOverlay('DASH STREAM UNREACHABLE');
-    }
-  });
-
-  // Build the MPD URL — append index.mpd if the URL ends in /
+  // Build the MPD URL — append index.mpd if URL ends in /
   let mpdUrl = ch.url;
   if (mpdUrl.endsWith('/')) mpdUrl += 'index.mpd';
-  if (useProxy) mpdUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpdUrl);
+
+  // Determine if this is an auth-protected stream (don't bother proxying 401s)
+  const isAuthProtected = ch.isAuthProtected === true;
+
+  if (useProxy && !isAuthProtected) {
+    mpdUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpdUrl);
+  }
 
   player.load(mpdUrl)
     .then(() => {
@@ -981,12 +979,23 @@ function initDashPlayer(ch, useProxy) {
       hideOverlay();
     })
     .catch((err) => {
-      console.error('DASH load error:', err);
-      if (!useProxy) {
-        showOverlay('DASH ERROR - RETRYING...');
+      // Check HTTP status from Shaka error (code 1001 = BAD_HTTP_STATUS)
+      const httpStatus = err && err.data && err.data[1];
+      const isAuthError = httpStatus === 401 || httpStatus === 403;
+
+      if (isAuthError) {
+        // Token-gated stream — no point retrying, show clear message
+        showOverlay('STREAM REQUIRES AUTH (401/403)');
+        console.warn('DASH auth error — stream is token-gated:', ch.url);
+        return;
+      }
+
+      if (!useProxy && !isAuthProtected) {
+        showOverlay('DASH CORS ERROR - REROUTING...');
         setTimeout(() => playChannel(ch.id, true), 1500);
       } else {
         showOverlay('DASH STREAM UNREACHABLE');
+        console.error('DASH load error:', err);
       }
     });
 }
