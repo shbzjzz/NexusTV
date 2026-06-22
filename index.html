@@ -333,6 +333,11 @@ body::after {
   background: #000; min-height: 0;
   box-shadow: 0 0 0 1px var(--glass-border), 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(167,139,250,0.06);
 }
+/* When player-frame is fullscreen, ensure children fill it */
+.player-frame:-webkit-full-screen { width: 100vw; height: 100vh; border-radius: 0; }
+.player-frame:-moz-full-screen    { width: 100vw; height: 100vh; border-radius: 0; }
+.player-frame:fullscreen          { width: 100vw; height: 100vh; border-radius: 0; }
+
 .player-inner-glow {
   position: absolute; inset: 0; border-radius: var(--radius-lg); pointer-events: none; z-index: 5;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
@@ -597,7 +602,8 @@ body::after {
                   <input type="range" class="vol-slider" id="vol-slider" min="0" max="1" step="0.01" value="0.8">
                 </div>
                 <div class="ctrl-group">
-                  <button class="ctrl-btn" id="fs-btn"><i class="fa-solid fa-expand"></i></button>
+                  <!-- FIX: fullscreen button targets player-frame, not video -->
+                  <button class="ctrl-btn" id="fs-btn" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
                 </div>
               </div>
             </div>
@@ -658,6 +664,11 @@ const CHANNELS = [
     number: '00', isEmbed: true,
     url: 'https://veotest.bbvplayline1a.com/video.html?url=https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8'
   },
+   {
+    id: 'prime-sports', name: 'Prime Sports Live', category: 'Sports',
+    logo: '', number: '04', isDash: true,
+    url: 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/72sjo8hygl/out/v1/3079be34d72a4985852d299a02406a0c/'
+  },
   {
     id: '12305', name: 'Caze TV Brasil', category: 'Sports',
     logo: 'https://stream.codecloud.bd/uploads/logos/logo_6a2a39c4ac184.png',
@@ -676,11 +687,7 @@ const CHANNELS = [
     number: '03',
     url: 'https://amg01334-amg01334c2-freelivesports-emea-6791.playouts.now.amagi.tv/playlist/amg01334-beinxtra-beinxtrausapp-freelivesportsemea/playlist.m3u8'
   },
-  {
-    id: 'prime-sports', name: 'Prime Sports Live', category: 'Sports',
-    logo: '', number: '04', isDash: true,
-    url: 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/72sjo8hygl/out/v1/3079be34d72a4985852d299a02406a0c/'
-  },
+
   {
     id: '12318', name: 'FIFA+ Argentina', category: 'Sports',
     logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
@@ -705,39 +712,6 @@ const CHANNELS = [
     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
   }
 ];
-
-/* ══════════════════════════════════════════
-   DASH MPD BUILDER
-   ══════════════════════════════════════════ */
-function buildDashManifest(baseUrl) {
-  const m = Math.floor(Date.now() / 1000);
-  const startNum = Math.floor(m / 2);
-  return `<?xml version="1.0" encoding="utf-8"?>
-<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="dynamic" publishTime="${new Date().toISOString()}" minimumUpdatePeriod="PT2S" availabilityStartTime="2025-11-11T21:20:13+00:00" minBufferTime="PT10S" suggestedPresentationDelay="PT2.000S" timeShiftBufferDepth="PT299.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011">
-  <Period id="1" start="PT0S">
-    <AdaptationSet id="1" mimeType="video/mp4" segmentAlignment="true" startWithSAP="1">
-      <Representation id="720" width="1280" height="720" frameRate="30/1" bandwidth="2099968" codecs="avc1.64001F">
-        <SegmentTemplate timescale="30000" media="cenc_video_4_0_$Number$.mp4?m=${m}" initialization="cenc_video_4_0_init.mp4?m=${m}" startNumber="${startNum}">
-          <SegmentTimeline><S t="0" d="60000" r="999"/></SegmentTimeline>
-        </SegmentTemplate>
-      </Representation>
-      <Representation id="1080" width="1920" height="1080" frameRate="30/1" bandwidth="8200000" codecs="avc1.640028">
-        <SegmentTemplate timescale="30000" media="cenc_video_6_0_$Number$.mp4?m=${m}" initialization="cenc_video_6_0_init.mp4?m=${m}" startNumber="${startNum}">
-          <SegmentTimeline><S t="0" d="60000" r="999"/></SegmentTimeline>
-        </SegmentTemplate>
-      </Representation>
-    </AdaptationSet>
-    <AdaptationSet id="2" mimeType="audio/mp4" lang="eng" segmentAlignment="true" startWithSAP="1">
-      <Representation id="audio" bandwidth="189375" audioSamplingRate="48000" codecs="mp4a.40.2">
-        <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2"/>
-        <SegmentTemplate timescale="48000" media="cenc_audio_7_0_$Number$.mp4?m=${m}" initialization="cenc_audio_7_0_init.mp4?m=${m}" startNumber="${startNum}">
-          <SegmentTimeline><S t="0" d="96000" r="999"/></SegmentTimeline>
-        </SegmentTemplate>
-      </Representation>
-    </AdaptationSet>
-  </Period>
-</MPD>`;
-}
 
 /* ══════════════════════════════════════════
    STATE
@@ -852,6 +826,24 @@ function hideOverlay() {
 }
 
 /* ══════════════════════════════════════════
+   DESTROY PLAYERS
+   ══════════════════════════════════════════ */
+function destroyPlayers() {
+  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+  if (shakaInstance) {
+    try { shakaInstance.destroy(); } catch(e) {}
+    shakaInstance = null;
+  }
+  if (dashManifestUrl) { URL.revokeObjectURL(dashManifestUrl); dashManifestUrl = ''; }
+  // Detach video from any shaka container wrappers
+  $playerContainer.innerHTML = '';
+  // Re-append video to its original parent (player-frame) if it was moved
+  if (!$playerFrame.contains($video)) {
+    $playerFrame.insertBefore($video, $playerOverlay);
+  }
+}
+
+/* ══════════════════════════════════════════
    PLAY CHANNEL
    ══════════════════════════════════════════ */
 function playChannel(id, useProxy) {
@@ -863,10 +855,7 @@ function playChannel(id, useProxy) {
   proxyOn = useProxy;
   showOverlay(useProxy ? 'ROUTING VIA PROXY...' : 'TUNING: ' + ch.name.toUpperCase());
 
-  // Destroy existing
-  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-  if (shakaInstance) { try { shakaInstance.destroy(); } catch(e) {} shakaInstance = null; }
-  $playerContainer.innerHTML = '';
+  destroyPlayers();
 
   // ── EMBED MODE ──
   if (ch.isEmbed) {
@@ -883,6 +872,7 @@ function playChannel(id, useProxy) {
   // ── VIDEO MODE ──
   $iframe.style.display = 'none';
   $video.style.display = 'block';
+  $video.volume = volume;
 
   let streamUrl = ch.url;
   if (useProxy) streamUrl = 'https://corsproxy.io/?' + encodeURIComponent(streamUrl);
@@ -927,7 +917,9 @@ function playChannel(id, useProxy) {
 }
 
 /* ══════════════════════════════════════════
-   DASH PLAYER INIT
+   DASH PLAYER INIT — FIXED
+   Correct Shaka API: new shaka.Player(videoElement)
+   NOT player.init() which doesn't exist in v4+
    ══════════════════════════════════════════ */
 function initDashPlayer(ch, useProxy) {
   const Shaka = window.shaka;
@@ -936,49 +928,39 @@ function initDashPlayer(ch, useProxy) {
     return;
   }
 
-  // Create Shaka UI container
-  const container = document.createElement('div');
-  container.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
-  container.className = 'shaka-video-container';
-  container.appendChild($video);
-  $playerContainer.appendChild(container);
+  // Ensure video is visible and inside player-frame
+  $video.style.display = 'block';
 
-  const player = new Shaka.Player();
+  // Construct Shaka player directly on the video element (Shaka v4 API)
+  let player;
+  try {
+    player = new Shaka.Player($video);
+  } catch(e) {
+    console.error('Shaka init error:', e);
+    showOverlay('DASH INIT FAILED');
+    return;
+  }
   shakaInstance = player;
 
-  player.init($video).then(() => {
-    // Build MPD with fresh timestamp
-    const mpdXml = buildDashManifest(ch.url);
-    const blob = new Blob([mpdXml], { type: 'application/dash+xml' });
-    const mpdUrl = URL.createObjectURL(blob);
+  player.configure({
+    streaming: {
+      bufferingGoal: 30,
+      rebufferingGoal: 5,
+      bufferBehind: 60,
+      ignoreTextStreamFailures: true,
+      startAtSegmentBoundary: true,
+      smallGapLimit: 0.5,
+      jumpLargeGaps: true,
+    },
+    abr: {
+      enabled: true,
+      defaultBandwidthEstimate: 5000000,
+    },
+  });
 
-    if (dashManifestUrl) URL.revokeObjectURL(dashManifestUrl);
-    dashManifestUrl = mpdUrl;
-
-    player.configure({
-      streaming: {
-        bufferingGoal: 30,
-        rebufferingGoal: 5,
-        bufferBehind: 60,
-        ignoreTextStreamFailures: true,
-        startAtSegmentBoundary: true,
-        smallGapLimit: 0.5,
-        jumpLargeGaps: true,
-      },
-      abr: {
-        enabled: true,
-        defaultBandwidthEstimate: 5000000,
-      },
-      drm: { clearKeys: {} },
-      manifest: { disableVideo: false, disableAudio: false },
-    });
-
-    return player.load(mpdUrl);
-  }).then(() => {
-    $video.play().catch(() => {});
-    hideOverlay();
-  }).catch((err) => {
-    console.error('DASH error:', err);
+  // Listen for errors
+  player.addEventListener('error', (e) => {
+    console.error('Shaka error event:', e.detail);
     if (!useProxy) {
       showOverlay('DASH ERROR - RETRYING...');
       setTimeout(() => playChannel(ch.id, true), 1500);
@@ -986,6 +968,27 @@ function initDashPlayer(ch, useProxy) {
       showOverlay('DASH STREAM UNREACHABLE');
     }
   });
+
+  // Build the MPD URL — append index.mpd if the URL ends in /
+  let mpdUrl = ch.url;
+  if (mpdUrl.endsWith('/')) mpdUrl += 'index.mpd';
+  if (useProxy) mpdUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpdUrl);
+
+  player.load(mpdUrl)
+    .then(() => {
+      $video.volume = volume;
+      $video.play().catch(() => {});
+      hideOverlay();
+    })
+    .catch((err) => {
+      console.error('DASH load error:', err);
+      if (!useProxy) {
+        showOverlay('DASH ERROR - RETRYING...');
+        setTimeout(() => playChannel(ch.id, true), 1500);
+      } else {
+        showOverlay('DASH STREAM UNREACHABLE');
+      }
+    });
 }
 
 /* ══════════════════════════════════════════
@@ -1020,11 +1023,40 @@ $volSlider.addEventListener('input', (e) => {
   }
 });
 
+/* ══════════════════════════════════════════
+   FULLSCREEN — FIXED
+   Target player-frame div (not video element).
+   This covers embed iframe + video + overlay together.
+   ══════════════════════════════════════════ */
 $fsBtn.addEventListener('click', () => {
-  const el = $video;
-  if (el.requestFullscreen) el.requestFullscreen();
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  const el = $playerFrame;
+  if (!document.fullscreenElement &&
+      !document.webkitFullscreenElement &&
+      !document.mozFullScreenElement) {
+    // Enter fullscreen
+    if (el.requestFullscreen)             el.requestFullscreen();
+    else if (el.webkitRequestFullscreen)  el.webkitRequestFullscreen();
+    else if (el.mozRequestFullScreen)     el.mozRequestFullScreen();
+    else if (el.msRequestFullscreen)      el.msRequestFullscreen();
+    $fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
+  } else {
+    // Exit fullscreen
+    if (document.exitFullscreen)             document.exitFullscreen();
+    else if (document.webkitExitFullscreen)  document.webkitExitFullscreen();
+    else if (document.mozCancelFullScreen)   document.mozCancelFullScreen();
+    else if (document.msExitFullscreen)      document.msExitFullscreen();
+    $fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+  }
 });
+
+// Sync icon when user presses Esc to exit fullscreen
+document.addEventListener('fullscreenchange', syncFsIcon);
+document.addEventListener('webkitfullscreenchange', syncFsIcon);
+document.addEventListener('mozfullscreenchange', syncFsIcon);
+function syncFsIcon() {
+  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  $fsBtn.innerHTML = `<i class="fa-solid ${inFS ? 'fa-compress' : 'fa-expand'}"></i>`;
+}
 
 // Hover controls
 $playerFrame.addEventListener('mouseenter', () => { showControls = true; $hoverControls.classList.add('visible'); });
@@ -1138,15 +1170,12 @@ function renderStandings() {
    ══════════════════════════════════════════ */
 function setView(view) {
   currentView = view;
-  // Header tabs
   document.querySelectorAll('.nav-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.view === view);
   });
-  // Mobile nav
   document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(t => {
     t.classList.toggle('active', t.dataset.view === view);
   });
-  // Views
   if (view === 'tv') {
     $tvView.style.display = '';
     $standingsView.classList.remove('active');
@@ -1229,12 +1258,10 @@ renderScoreboard();
 renderStandings();
 setView('tv');
 
-// Fetch ESPN data
 fetchScoreboard();
 fetchStandings();
 setInterval(fetchScoreboard, 30000);
 
-// Auto-play default channel
 setTimeout(() => playChannel('trt-default'), 500);
 </script>
 </body>
