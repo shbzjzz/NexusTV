@@ -615,14 +615,17 @@ try { shaka.polyfill.installAll(); } catch(e) {}
    CHANNEL DATA
    ══════════════════════════════════════════ */
 const CHANNELS = [
-  // ── TRT Alt — canlitvme CDN checks Referer/Origin, can't set in JS.
-  // Wrap in veotest iframe passthrough (no-referrer sandbox) same as TRT World.
+  // ── TRT Alt — canlitvme CDN blocks cross-origin XHR (Referer check).
+  // CF Worker proxy (canlitvme-proxy-worker.js) spoofs Referer and rewrites
+  // segment URLs, so HLS.js can load it natively without an iframe.
+  // noProxy: true → skip corsproxy.io fallback (worker already handles CORS).
+  // ⚠ Update WORKER_URL below after deploying canlitvme-proxy-worker.js
   {
     id: 'trt-alt', name: 'TRT Alt', category: 'News',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/TRT_World_logo.svg/240px-TRT_World_logo.svg.png',
     number: '00',
-    isEmbed: true,
-    url: 'https://veotest.bbvplayline1a.com/video.html?url=https://cdn508.canlitvme.com/trt1720.m3u8?tkn=MuYVzWW-gjPksL8Cg6jZ-Q%26tms=1782256478%26hst=tr.canlitvme.com%26ip=2001:8f8:1471:2bfc:dc77:eb2f:3ce1:96c%26utkn=528ed31ec09ee3c907169c5890c858b9%26ch=trt1-canli-kesintisiz-izle'
+    noProxy: true,
+    url: 'https://canlitvme-proxy.gala-it1.workers.dev/?url=' + encodeURIComponent('https://cdn508.canlitvme.com/trt1720.m3u8?tkn=MuYVzWW-gjPksL8Cg6jZ-Q&tms=1782256478&hst=tr.canlitvme.com&ip=2001:8f8:1471:2bfc:dc77:eb2f:3ce1:96c&utkn=528ed31ec09ee3c907169c5890c858b9&ch=trt1-canli-kesintisiz-izle')
   },
 
   // ── HAR channel — Amazon/Nitro DASH + ClearKey DRM
@@ -643,7 +646,7 @@ const CHANNELS = [
     id: 'trt-default', name: 'TRT World', category: 'News',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/TRT_World_logo.svg/240px-TRT_World_logo.svg.png',
     number: '02', isEmbed: true,
-    url: 'https://veotest.bbvplayline1a.com/video.html?url=https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8'
+    url: 'https://canlitvme-proxy.gala-it1.workers.dev/?url=' + encodeURIComponent('https://veotest.bbvplayline1a.com/video.html?url=https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8')
   },
   {
     id: 'prime-sports', name: 'Prime Sports Live', category: 'Sports',
@@ -1003,15 +1006,17 @@ async function initDashPlayer(ch, useProxy) {
         servers: {
           'com.widevine.alpha':    '',
           'com.microsoft.playready': ''
-        },
-        advanced: {
-          'org.w3.clearkey': { videoRobustness: '', audioRobustness: '' }
         }
+        // Note: drm.advanced.org.w3.clearkey.videoRobustness / audioRobustness
+        // must NOT be set — wrong type in Shaka v5 and causes load abort (6002)
       },
       manifest: {
         defaultPresentationDelay: 4,
-        ignoreTextStreamFailures: true,
         dash: { autoCorrectDrift: true, ignoreMinBufferTime: true }
+      },
+      streaming: {
+        // Moved from manifest.ignoreTextStreamFailures in Shaka v5
+        ignoreTextStreamFailures: true
       },
       abr: {
         enabled: true,
@@ -1023,8 +1028,10 @@ async function initDashPlayer(ch, useProxy) {
     player.configure({
       manifest: {
         defaultPresentationDelay: 4,
-        ignoreTextStreamFailures: true,
         dash: { autoCorrectDrift: true, ignoreMinBufferTime: true }
+      },
+      streaming: {
+        ignoreTextStreamFailures: true
       },
       abr: { enabled: true, defaultBandwidthEstimate: 2000000 }
     });
