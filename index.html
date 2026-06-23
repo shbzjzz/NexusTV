@@ -369,16 +369,15 @@ body::after {
 .overlay-msg { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-align: center; font-family: var(--font-heading); color: var(--accent); }
 .overlay-proxy { font-size: 10px; letter-spacing: 0.08em; font-family: var(--font-heading); color: var(--text-faint); }
 
-/* Hover controls */
+/* Controls bar — below player */
 #hover-controls {
-  position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 30;
+  flex-shrink: 0;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  border-radius: var(--radius-md); padding: 10px 14px;
-  background: rgba(4,11,20,0.75); backdrop-filter: blur(16px);
+  border-radius: var(--radius-md); padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
-  transition: all 0.3s; opacity: 0; transform: translateY(8px);
 }
-#hover-controls.visible { opacity: 1; transform: translateY(0); }
 .ctrl-group { display: flex; align-items: center; gap: 8px; }
 .ctrl-btn {
   width: 32px; height: 32px; border-radius: 8px; display: flex;
@@ -561,7 +560,7 @@ body::after {
       <div id="sidebar-header">
         <div class="sidebar-title-row">
           <h2 class="sidebar-title"><i class="fa-solid fa-satellite-dish"></i> Channels</h2>
-          <span class="channel-count" id="ch-count">19</span>
+          <span class="channel-count" id="ch-count">20</span>
         </div>
         <div class="search-box">
           <i class="fa-solid fa-search"></i>
@@ -595,16 +594,18 @@ body::after {
                 <p class="overlay-proxy" id="overlay-proxy">PROXY: OFF</p>
               </div>
 
-              <!-- Hover controls -->
-              <div id="hover-controls">
-                <div class="ctrl-group">
-                  <button class="ctrl-btn" id="mute-btn"><i class="fa-solid fa-volume-high"></i></button>
-                  <input type="range" class="vol-slider" id="vol-slider" min="0" max="1" step="0.01" value="0.8">
-                </div>
-                <div class="ctrl-group">
-                  <!-- FIX: fullscreen button targets player-frame, not video -->
-                  <button class="ctrl-btn" id="fs-btn" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
-                </div>
+            </div>
+
+            <!-- Controls bar (below player) -->
+            <div id="hover-controls">
+              <div class="ctrl-group">
+                <button class="ctrl-btn" id="play-btn" title="Play"><i class="fa-solid fa-play"></i></button>
+                <button class="ctrl-btn" id="refresh-btn" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+                <button class="ctrl-btn" id="mute-btn"><i class="fa-solid fa-volume-high"></i></button>
+                <input type="range" class="vol-slider" id="vol-slider" min="0" max="1" step="0.01" value="0.8">
+              </div>
+              <div class="ctrl-group">
+                <button class="ctrl-btn" id="fs-btn" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
               </div>
             </div>
 
@@ -660,14 +661,20 @@ try { shaka.polyfill.installAll(); } catch(e) {}
 const CHANNELS = [
   {
     id: 'wc-s18-embed', name: 'Sports18 Nitro (Embed)', category: 'World Cup 2026',
-    logo: '', number: '00', isEmbed: true,
+    logo: '', number: '13', isEmbed: true,
     url: 'https://lordatomic.github.io/uefa/d.html'
   },
   {
-    id: 'trt-default', name: 'TRT World', category: 'News',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/TRT_World_logo.svg/240px-TRT_World_logo.svg.png',
-    number: '1', isEmbed: true,
-    url: 'https://veotest.bbvplayline1a.com/video.html?url=https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8'
+    id: 'wc-6thlink-embed', name: 'WC Match (6thlink)', category: 'World Cup 2026',
+    logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
+    number: '14', isEmbed: true,
+    url: 'https://sayanchannelcdn03.pages.dev/football/d'
+  },
+  {
+    id: 'trt-default', name: 'TRT 1', category: 'News',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/TRT_1_logo.svg/240px-TRT_1_logo.svg.png',
+    number: '01',
+    url: 'https://cdn502.canlitvme.com/trt1.m3u8?tkn=nYBkfqd3KSC1yfs2TNgylQ&tms=1782265846&hst=tr.canlitvme.com&ip=2001:8f8:1471:2bfc:dc77:eb2f:3ce1:96c&utkn=528ed31ec09ee3c907169c5890c858b9&ch=trt1-canli-kesintisiz-izle'
   },
  {
     id: 'prime-sports', name: 'Prime Sports Live', category: 'Sports',
@@ -675,7 +682,12 @@ const CHANNELS = [
     number: '04',
     url: 'https://ch.eznzer.online/new1_720/index.m3u8'
   },
-  
+  {
+    id: '12305', name: 'Caze TV Brasil', category: 'Sports',
+    logo: 'https://stream.codecloud.bd/uploads/logos/logo_6a2a39c4ac184.png',
+    number: '01',
+    url: 'https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8'
+  },
   {
     id: '12317', name: 'FIFA Plus', category: 'Sports',
     logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
@@ -804,6 +816,8 @@ const $hoverControls = document.getElementById('hover-controls');
 const $muteBtn = document.getElementById('mute-btn');
 const $volSlider = document.getElementById('vol-slider');
 const $fsBtn = document.getElementById('fs-btn');
+const $playBtn = document.getElementById('play-btn');
+const $refreshBtn = document.getElementById('refresh-btn');
 const $playerFrame = document.getElementById('player-frame');
 const $infoLogo = document.getElementById('info-logo');
 const $infoName = document.getElementById('info-name');
@@ -894,6 +908,9 @@ function destroyPlayers() {
     shakaInstance = null;
   }
   if (dashManifestUrl) { URL.revokeObjectURL(dashManifestUrl); dashManifestUrl = ''; }
+  // Stop any running iframe embed
+  $iframe.src = 'about:blank';
+  $iframe.style.display = 'none';
   // Detach video from any shaka container wrappers
   $playerContainer.innerHTML = '';
   // Re-append video to its original parent (player-frame) if it was moved
@@ -1126,15 +1143,28 @@ function syncFsIcon() {
   $fsBtn.innerHTML = `<i class="fa-solid ${inFS ? 'fa-compress' : 'fa-expand'}"></i>`;
 }
 
-// Hover controls
-$playerFrame.addEventListener('mouseenter', () => { showControls = true; $hoverControls.classList.add('visible'); });
-$playerFrame.addEventListener('mouseleave', () => { showControls = false; $hoverControls.classList.remove('visible'); });
-// Touch: tap to toggle
-$playerFrame.addEventListener('touchstart', (e) => {
-  if (e.target.closest('#hover-controls')) return;
-  showControls = !showControls;
-  $hoverControls.classList.toggle('visible', showControls);
-}, { passive: true });
+// Play button — play/pause the video
+$playBtn.addEventListener('click', () => {
+  if ($video.style.display !== 'none') {
+    if ($video.paused) {
+      $video.play().catch(() => {});
+      $playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    } else {
+      $video.pause();
+      $playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    }
+  }
+});
+// Sync play icon when video plays/pauses
+$video.addEventListener('play', () => { $playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; });
+$video.addEventListener('pause', () => { $playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; });
+
+// Refresh button — reload current channel
+$refreshBtn.addEventListener('click', () => {
+  if (activeId) playChannel(activeId, false);
+});
+
+// Controls are now always visible below the player
 
 /* ══════════════════════════════════════════
    ESPN DATA
