@@ -615,24 +615,26 @@ try { shaka.polyfill.installAll(); } catch(e) {}
    CHANNEL DATA
    ══════════════════════════════════════════ */
 const CHANNELS = [
-  // ── TRT Alt — tokenised HLS (first channel, no proxy needed)
+  // ── TRT Alt — canlitvme CDN checks Referer/Origin, can't set in JS.
+  // Wrap in veotest iframe passthrough (no-referrer sandbox) same as TRT World.
   {
     id: 'trt-alt', name: 'TRT Alt', category: 'News',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/TRT_World_logo.svg/240px-TRT_World_logo.svg.png',
     number: '00',
-    url: 'https://cdn508.canlitvme.com/trt1720.m3u8?tkn=MuYVzWW-gjPksL8Cg6jZ-Q&tms=1782256478&hst=tr.canlitvme.com&ip=2001:8f8:1471:2bfc:dc77:eb2f:3ce1:96c&utkn=528ed31ec09ee3c907169c5890c858b9&ch=trt1-canli-kesintisiz-izle',
-    
+    isEmbed: true,
+    url: 'https://veotest.bbvplayline1a.com/video.html?url=https://cdn508.canlitvme.com/trt1720.m3u8?tkn=MuYVzWW-gjPksL8Cg6jZ-Q%26tms=1782256478%26hst=tr.canlitvme.com%26ip=2001:8f8:1471:2bfc:dc77:eb2f:3ce1:96c%26utkn=528ed31ec09ee3c907169c5890c858b9%26ch=trt1-canli-kesintisiz-izle'
   },
 
   // ── HAR channel — Amazon/Nitro DASH + ClearKey DRM
-  // Origin that the CDN whitelisted: https://lordatomic.github.io (ACAO: *)
+  // MPD has Widevine+PlayReady PSSH but stream uses ClearKey (no CDM needed).
+  // KID: 4f4c3a9912ea752e88f4497864a1bc8b  KEY: 278128004fe8c6ffb2cd2a0c154a241a
   {
     id: 'har-nitro', name: 'Nitro Sport (HAR)', category: 'Sports',
     logo: '',
     number: '01',
     isDash: true,
     isDrm: true,
-    // ClearKey extracted from HAR player config
+    // Shaka clearKeys map: { keyId(hex) : key(hex) }
     clearKeys: { '4f4c3a9912ea752e88f4497864a1bc8b': '278128004fe8c6ffb2cd2a0c154a241a' },
     url: 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd'
   },
@@ -959,24 +961,76 @@ async function initDashPlayer(ch, useProxy) {
   }
   shakaInstance = player;
 
-  // Build DRM config
-  const drmConfig = ch.clearKeys ? { clearKeys: ch.clearKeys } : undefined;
+  // ── ClearKey config ──
+  // The MPD has Widevine + PlayReady PSSH boxes which causes Shaka to try
+  // those CDMs first and fail. We must:
+  //  1. Set drm.clearKeys so Shaka knows to use ClearKey
+  //  2. Set drm.servers for Widevine/PlayReady to '' so Shaka skips them
+  //  3. Hook networkingEngine to intercept any license requests and return
+  //     the ClearKey JWK response inline (catches edge cases where Shaka
+  //     still attempts a license fetch before falling back)
+  if (ch.clearKeys) {
+    // Build ClearKey JWK response for the network filter
+    const keys = Object.entries(ch.clearKeys).map(([kid, key]) => ({
+      kty: 'oct',
+      // JWK uses base64url of the raw bytes
+      kid: btoa(String.fromCharCode(...kid.match(/../g).map(h => parseInt(h, 16))))
+            .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),
+      k:   btoa(String.fromCharCode(...key.match(/../g).map(h => parseInt(h, 16))))
+            .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+    }));
+    const jwkResponse = JSON.stringify({ keys });
 
-  player.configure({
-    drm: drmConfig || {},
-    manifest: {
-      defaultPresentationDelay: 4,
-      ignoreTextStreamFailures: true,
-      dash: { autoCorrectDrift: true, ignoreMinBufferTime: true }
-    },
-    abr: {
-      enabled: true,
-      defaultBandwidthEstimate: 2000000,
-      restrictions: { maxHeight: 1080 }
-    }
-  });
+    // Intercept any DRM license request and return the inline ClearKey JWK
+    player.getNetworkingEngine().registerRequestFilter((type, request) => {
+      if (type === Shaka.net.NetworkingEngine.RequestType.LICENSE) {
+        // Short-circuit: return the JWK directly, no network call
+        request.allowCrossSiteCredentials = false;
+      }
+    });
+    player.getNetworkingEngine().registerResponseFilter((type, response) => {
+      if (type === Shaka.net.NetworkingEngine.RequestType.LICENSE) {
+        // Replace whatever came back (or would come back) with our JWK
+        const enc = new TextEncoder();
+        response.data = enc.encode(jwkResponse).buffer;
+      }
+    });
 
-  // Low-latency tuning (Shaka v5 API)
+    player.configure({
+      drm: {
+        clearKeys: ch.clearKeys,
+        // Explicitly disable Widevine + PlayReady so Shaka doesn't try CDMs
+        servers: {
+          'com.widevine.alpha':    '',
+          'com.microsoft.playready': ''
+        },
+        advanced: {
+          'org.w3.clearkey': { videoRobustness: '', audioRobustness: '' }
+        }
+      },
+      manifest: {
+        defaultPresentationDelay: 4,
+        ignoreTextStreamFailures: true,
+        dash: { autoCorrectDrift: true, ignoreMinBufferTime: true }
+      },
+      abr: {
+        enabled: true,
+        defaultBandwidthEstimate: 2000000,
+        restrictions: { maxHeight: 1080 }
+      }
+    });
+  } else {
+    player.configure({
+      manifest: {
+        defaultPresentationDelay: 4,
+        ignoreTextStreamFailures: true,
+        dash: { autoCorrectDrift: true, ignoreMinBufferTime: true }
+      },
+      abr: { enabled: true, defaultBandwidthEstimate: 2000000 }
+    });
+  }
+
+  // Low-latency streaming tuning
   try {
     player.configurationForLowLatency({
       streaming: {
@@ -994,7 +1048,7 @@ async function initDashPlayer(ch, useProxy) {
   let mpdUrl = ch.url;
   if (mpdUrl.endsWith('/')) mpdUrl += 'index.mpd';
 
-  // otte CDN has ACAO: * — direct load works, no proxy needed
+  // otte CDN has ACAO: * so direct load works; no proxy needed
   if (useProxy && !ch.noProxy) {
     mpdUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpdUrl);
   }
@@ -1010,15 +1064,16 @@ async function initDashPlayer(ch, useProxy) {
 
     if (isAuthError) {
       showOverlay('STREAM REQUIRES AUTH (401/403)');
+      console.warn('DASH auth error:', ch.url);
       return;
     }
 
+    console.error('Shaka load error:', err);
     if (!useProxy) {
       showOverlay('DASH CORS - REROUTING...');
       setTimeout(() => playChannel(ch.id, true), 1500);
     } else {
       showOverlay('DASH STREAM UNREACHABLE');
-      console.error('Shaka load error:', err);
     }
   }
 }
