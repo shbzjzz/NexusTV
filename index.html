@@ -10,11 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.7.14/dist/shaka-player.compiled.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@5.1.8/dist/shaka-player.compiled.js"></script>
 <style>
-/* ══════════════════════════════════════════
-   CSS VARIABLES
-   ══════════════════════════════════════════ */
 :root {
   --bg-deep: #040b14;
   --bg-mid: #071220;
@@ -52,7 +49,6 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ═══ PREMIUM GLASSMORPHISM BACKGROUNDS ═══ */
 body::before {
   content: '';
   position: fixed;
@@ -76,7 +72,6 @@ body::after {
   z-index: 0;
 }
 
-/* ═══ GLASSMORPHISM CLASSES ═══ */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
@@ -101,13 +96,11 @@ body::after {
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
-/* ═══ SCROLLBAR ═══ */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.3); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(167, 139, 250, 0.5); }
 
-/* ═══ ANIMATIONS ═══ */
 @keyframes livePulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.3; transform: scale(0.6); }
@@ -120,7 +113,6 @@ body::after {
   75% { transform: translate(20px, 20px) scale(1.02); }
 }
 
-/* ═══ COMPONENTS ═══ */
 .live-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--red); box-shadow: 0 0 8px var(--red);
@@ -182,11 +174,6 @@ body::after {
   box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(167,139,250,0.06), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
-/* Shaka player overrides */
-.shaka-video-container { width: 100% !important; height: 100% !important; background: #000 !important; }
-.shaka-video-container video { width: 100% !important; height: 100% !important; object-fit: contain !important; }
-
-/* ═══ APP LAYOUT ═══ */
 #app {
   position: relative; z-index: 1;
   display: flex; flex-direction: column;
@@ -194,7 +181,6 @@ body::after {
   font-family: var(--font-body);
 }
 
-/* ═══ HEADER ═══ */
 #app-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 16px; gap: 12px; height: 60px; flex-shrink: 0;
@@ -246,10 +232,8 @@ body::after {
 
 .live-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); font-family: var(--font-heading); }
 
-/* ═══ MAIN BODY ═══ */
 #app-body { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 10; }
 
-/* ═══ SIDEBAR ═══ */
 #sidebar {
   width: 300px; flex-shrink: 0; display: flex; flex-direction: column;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100;
@@ -310,30 +294,30 @@ body::after {
   font-size: 8px; font-weight: 600; background: rgba(56,189,248,0.15);
   color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); vertical-align: middle;
 }
+.drm-badge {
+  display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 999px;
+  font-size: 8px; font-weight: 600; background: rgba(251,191,36,0.15);
+  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); vertical-align: middle;
+}
 
 .no-channels { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 8px; }
 .no-channels i { font-size: 18px; color: var(--text-faint); }
 .no-channels p { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-heading); color: var(--text-faint); }
 
-/* Sidebar overlay for mobile */
 #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
 
-/* ═══ MAIN CONTENT ═══ */
 #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
-/* ── TV VIEW ── */
 #tv-view { display: flex; flex: 1; flex-direction: column; overflow: hidden; }
 #tv-view-inner { display: flex; flex: 1; overflow: hidden; }
 
 .player-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; padding: 12px; gap: 10px; }
 
-/* Player frame */
 .player-frame {
   flex: 1; position: relative; border-radius: var(--radius-lg); overflow: hidden;
   background: #000; min-height: 0;
   box-shadow: 0 0 0 1px var(--glass-border), 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(167,139,250,0.06);
 }
-/* When player-frame is fullscreen, ensure children fill it */
 .player-frame:-webkit-full-screen { width: 100vw; height: 100vh; border-radius: 0; }
 .player-frame:-moz-full-screen    { width: 100vw; height: 100vh; border-radius: 0; }
 .player-frame:fullscreen          { width: 100vw; height: 100vh; border-radius: 0; }
@@ -352,7 +336,6 @@ body::after {
   border-radius: var(--radius-lg); display: none;
 }
 
-/* Overlay */
 #player-overlay {
   position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 14px;
@@ -369,7 +352,6 @@ body::after {
 .overlay-msg { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-align: center; font-family: var(--font-heading); color: var(--accent); }
 .overlay-proxy { font-size: 10px; letter-spacing: 0.08em; font-family: var(--font-heading); color: var(--text-faint); }
 
-/* Hover controls */
 #hover-controls {
   position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 30;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -394,7 +376,6 @@ body::after {
 }
 .vol-slider::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; }
 
-/* Info bar */
 .info-bar { flex-shrink: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .info-card {
   display: flex; align-items: center; gap: 10px; padding: 8px 12px;
@@ -410,7 +391,6 @@ body::after {
 .info-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); font-family: var(--font-heading); }
 .info-name { font-size: 13px; font-weight: 600; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── RIGHT DRAWER (Scoreboard) ── */
 #scoreboard {
   width: 320px; flex-shrink: 0; display: flex; flex-direction: column;
 }
@@ -446,7 +426,6 @@ body::after {
 .no-data i { font-size: 18px; color: var(--text-faint); }
 .no-data p { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-heading); color: var(--text-faint); }
 
-/* ── STANDINGS VIEW ── */
 #standings-view { display: none; flex: 1; overflow-y: auto; padding: 14px; }
 #standings-view.active { display: block; }
 .standings-inner { max-width: 1200px; margin: 0 auto; }
@@ -466,7 +445,6 @@ body::after {
 .team-cell span { font-size: 11px; font-weight: 600; color: var(--text-primary); }
 .pts-cell { font-size: 13px; font-weight: 700; color: var(--accent); font-family: var(--font-heading); text-align: right; }
 
-/* ═══ MOBILE BOTTOM NAV ═══ */
 #mobile-nav { display: none; }
 #mobile-nav.show { display: flex; }
 .mobile-nav-btn {
@@ -478,15 +456,11 @@ body::after {
 .mobile-nav-btn span { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; }
 .mobile-nav-btn.active { color: var(--accent); }
 
-/* ═══ FLOATING ORBS ═══ */
-.orb {
-  position: absolute; border-radius: 50%; pointer-events: none;
-}
+.orb { position: absolute; border-radius: 50%; pointer-events: none; }
 .orb-1 { width: 500px; height: 500px; opacity: 0.07; background: radial-gradient(circle, rgba(167,139,250,0.6), transparent 70%); top: -10%; left: -5%; animation: floatOrbs 20s ease-in-out infinite; }
 .orb-2 { width: 400px; height: 400px; opacity: 0.05; background: radial-gradient(circle, rgba(56,189,248,0.6), transparent 70%); bottom: -10%; right: -5%; animation: floatOrbs 25s ease-in-out infinite reverse; }
 .orb-3 { width: 300px; height: 300px; opacity: 0.04; background: radial-gradient(circle, rgba(244,114,182,0.6), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: floatOrbs 30s ease-in-out infinite; }
 
-/* ═══ RESPONSIVE ═══ */
 @media (max-width: 900px) {
   .mobile-menu-btn { display: flex; }
   #sidebar {
@@ -516,22 +490,18 @@ body::after {
   #tv-view-inner { flex-direction: row; }
 }
 
-/* Hide scrollbar for category chips */
 .cat-chips { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 </head>
 <body>
 
-<!-- ═══ APP ═══ -->
 <div id="app">
-  <!-- Floating Orbs -->
   <div style="pointer-events:none;position:fixed;inset:0;z-index:0;overflow:hidden">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
   </div>
 
-  <!-- ═══ HEADER ═══ -->
   <header id="app-header" class="glass-strong">
     <div class="header-left">
       <button class="mobile-menu-btn" id="menu-btn"><i class="fa-solid fa-bars"></i></button>
@@ -553,15 +523,13 @@ body::after {
     </div>
   </header>
 
-  <!-- ═══ MAIN BODY ═══ -->
   <div id="app-body">
 
-    <!-- ═══ LEFT SIDEBAR ═══ -->
     <aside id="sidebar" class="glass-strong">
       <div id="sidebar-header">
         <div class="sidebar-title-row">
           <h2 class="sidebar-title"><i class="fa-solid fa-satellite-dish"></i> Channels</h2>
-          <span class="channel-count" id="ch-count">9</span>
+          <span class="channel-count" id="ch-count">0</span>
         </div>
         <div class="search-box">
           <i class="fa-solid fa-search"></i>
@@ -572,43 +540,35 @@ body::after {
       <div id="channel-list"></div>
     </aside>
 
-    <!-- Sidebar overlay (mobile) -->
     <div id="sidebar-overlay"></div>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
     <div id="main-content">
-      <!-- TV VIEW -->
       <div id="tv-view">
         <div id="tv-view-inner">
           <div class="player-area">
-            <!-- Player frame -->
             <div class="player-frame" id="player-frame">
               <div class="player-inner-glow"></div>
               <div id="player-container"></div>
               <video id="tv-video" playsinline></video>
               <iframe id="tv-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 
-              <!-- Overlay -->
               <div id="player-overlay">
                 <div class="overlay-spinner"></div>
-                <p class="overlay-msg" id="overlay-msg">LOADING...</p>
+                <p class="overlay-msg" id="overlay-msg">SELECT A CHANNEL</p>
                 <p class="overlay-proxy" id="overlay-proxy">PROXY: OFF</p>
               </div>
 
-              <!-- Hover controls -->
               <div id="hover-controls">
                 <div class="ctrl-group">
                   <button class="ctrl-btn" id="mute-btn"><i class="fa-solid fa-volume-high"></i></button>
                   <input type="range" class="vol-slider" id="vol-slider" min="0" max="1" step="0.01" value="0.8">
                 </div>
                 <div class="ctrl-group">
-                  <!-- FIX: fullscreen button targets player-frame, not video -->
                   <button class="ctrl-btn" id="fs-btn" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
                 </div>
               </div>
             </div>
 
-            <!-- Info bar -->
             <div class="info-bar">
               <div class="info-card glass">
                 <div class="info-logo" id="info-logo"><i class="fa-solid fa-satellite-dish"></i></div>
@@ -620,7 +580,6 @@ body::after {
             </div>
           </div>
 
-          <!-- RIGHT DRAWER (Scoreboard) -->
           <div id="scoreboard" class="glass">
             <div id="scoreboard-header">
               <h3 class="sb-title"><i class="fa-solid fa-futbol"></i> Live Scoreboard</h3>
@@ -630,7 +589,6 @@ body::after {
         </div>
       </div>
 
-      <!-- STANDINGS VIEW -->
       <div id="standings-view">
         <div class="standings-inner">
           <h2 class="standings-title"><i class="fa-solid fa-trophy"></i> FIFA World Cup 2026 Standings</h2>
@@ -640,7 +598,6 @@ body::after {
     </div>
   </div>
 
-  <!-- ═══ MOBILE BOTTOM NAV ═══ -->
   <nav id="mobile-nav">
     <button class="mobile-nav-btn" id="mob-channels"><i class="fa-solid fa-signal"></i><span>Channels</span></button>
     <button class="mobile-nav-btn active" data-view="tv" id="mob-tv"><i class="fa-solid fa-tv"></i><span>Live TV</span></button>
@@ -658,58 +615,79 @@ try { shaka.polyfill.installAll(); } catch(e) {}
    CHANNEL DATA
    ══════════════════════════════════════════ */
 const CHANNELS = [
+  // ── TRT Alt — tokenised HLS (first channel, no proxy needed)
+  {
+    id: 'trt-alt', name: 'TRT Alt', category: 'News',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/TRT_World_logo.svg/240px-TRT_World_logo.svg.png',
+    number: '00',
+    url: 'https://cdn508.canlitvme.com/trt1720.m3u8?tkn=MuYVzWW-gjPksL8Cg6jZ-Q&tms=1782256478&hst=tr.canlitvme.com&ip=2001:8f8:1471:2bfc:dc77:eb2f:3ce1:96c&utkn=528ed31ec09ee3c907169c5890c858b9&ch=trt1-canli-kesintisiz-izle',
+    
+  },
+
+  // ── HAR channel — Amazon/Nitro DASH + ClearKey DRM
+  // Origin that the CDN whitelisted: https://lordatomic.github.io (ACAO: *)
+  {
+    id: 'har-nitro', name: 'Nitro Sport (HAR)', category: 'Sports',
+    logo: '',
+    number: '01',
+    isDash: true,
+    isDrm: true,
+    // ClearKey extracted from HAR player config
+    clearKeys: { '4f4c3a9912ea752e88f4497864a1bc8b': '278128004fe8c6ffb2cd2a0c154a241a' },
+    url: 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd'
+  },
+
   {
     id: 'trt-default', name: 'TRT World', category: 'News',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/TRT_World_logo.svg/240px-TRT_World_logo.svg.png',
-    number: '00', isEmbed: true,
+    number: '02', isEmbed: true,
     url: 'https://veotest.bbvplayline1a.com/video.html?url=https://rxne77juptdeyke3tytvgqwyh.medya.trt.com.tr/master.m3u8'
   },
- {
+  {
     id: 'prime-sports', name: 'Prime Sports Live', category: 'Sports',
     logo: 'https://imglink.cc/cdn/kIiut6WBq0.jpg',
-    number: '04',
+    number: '03',
     url: 'https://ch.eznzer.online/new1_720/index.m3u8'
   },
   {
     id: '12305', name: 'Caze TV Brasil', category: 'Sports',
     logo: 'https://stream.codecloud.bd/uploads/logos/logo_6a2a39c4ac184.png',
-    number: '01',
+    number: '04',
     url: 'https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8'
   },
   {
     id: '12317', name: 'FIFA Plus', category: 'Sports',
     logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
-    number: '02',
+    number: '05',
     url: 'https://37b4c228.wurl.com/manifest/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWZyX0ZJRkFQbHVzRnJlbmNoX0hMUw/6f5437c5-e015-4754-8476-c8c6d27d3a55/1.m3u8'
   },
   {
     id: '12307', name: 'Bein Sports XTRA', category: 'Sports',
     logo: 'https://imglink.cc/cdn/kIiut6WBq0.jpg',
-    number: '03',
+    number: '06',
     url: 'https://amg01334-amg01334c2-freelivesports-emea-6791.playouts.now.amagi.tv/playlist/amg01334-beinxtra-beinxtrausapp-freelivesportsemea/playlist.m3u8'
   },
- 
   {
     id: '12318', name: 'FIFA+ Argentina', category: 'Sports',
     logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
-    number: '05',
+    number: '07',
     url: 'https://6c849fb3.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/TEctbXhfRklGQVBsdXNTcGFuaXNoLTFfSExT/playlist.m3u8'
   },
   {
     id: '12308', name: 'FIFA+ English', category: 'Sports',
     logo: 'https://stream.codecloud.bd/uploads/logos/logo_6a234c03f4a.png',
-    number: '06',
+    number: '08',
     url: 'https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8'
   },
   {
     id: '12452', name: 'BBC Earth', category: 'Documentary',
     logo: 'https://imglink.cc/cdn/eEZmseF3Tb.jpg',
-    number: '07',
+    number: '09',
     url: 'https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist540p.m3u8'
   },
   {
     id: 'test1', name: 'Test Feed (Mux)', category: 'Test',
-    logo: '', number: '08',
+    logo: '', number: '10',
     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
   }
 ];
@@ -731,7 +709,6 @@ let showControls = false;
 let isMobile = false;
 let hlsInstance = null;
 let shakaInstance = null;
-let dashManifestUrl = '';
 
 /* ══════════════════════════════════════════
    DOM REFS
@@ -798,13 +775,17 @@ function renderChannels() {
 
   $channelList.innerHTML = filtered.map(ch => {
     const isActive = ch.id === activeId;
+    const badges = [
+      ch.isDash ? '<span class="dash-badge">DASH</span>' : '',
+      ch.isDrm  ? '<span class="drm-badge">DRM</span>'  : ''
+    ].join('');
     return `
       <div class="channel-item ${isActive ? 'active' : ''}" data-id="${ch.id}">
         <div class="ch-logo-box">
           ${ch.logo ? `<img src="${ch.logo}" alt="${ch.name}" onerror="this.style.display='none'">` : `<i class="fa-solid fa-tv"></i>`}
         </div>
         <div class="ch-info">
-          <div class="ch-name ${isActive ? 'active-name' : ''}">${ch.name}${ch.isDash ? '<span class="dash-badge">DASH</span>' : ''}</div>
+          <div class="ch-name ${isActive ? 'active-name' : ''}">${ch.name}${badges}</div>
           <div class="ch-cat">${ch.category}</div>
         </div>
         <span class="ch-num">${ch.number}</span>
@@ -827,18 +808,42 @@ function hideOverlay() {
 }
 
 /* ══════════════════════════════════════════
-   DESTROY PLAYERS
+   DESTROY ALL PLAYERS — full teardown before
+   every channel switch so old stream stops
    ══════════════════════════════════════════ */
 function destroyPlayers() {
-  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+  // 1. HLS.js
+  if (hlsInstance) {
+    hlsInstance.stopLoad();
+    hlsInstance.detachMedia();
+    hlsInstance.destroy();
+    hlsInstance = null;
+  }
+
+  // 2. Shaka
   if (shakaInstance) {
-    try { shakaInstance.destroy(); } catch(e) {}
+    try {
+      shakaInstance.unload();
+      shakaInstance.destroy();
+    } catch(e) {}
     shakaInstance = null;
   }
-  if (dashManifestUrl) { URL.revokeObjectURL(dashManifestUrl); dashManifestUrl = ''; }
-  // Detach video from any shaka container wrappers
+
+  // 3. Hard-stop the video element
+  try {
+    $video.pause();
+    $video.removeAttribute('src');
+    $video.load(); // flush buffered data
+  } catch(e) {}
+
+  // 4. Kill iframe
+  $iframe.src = 'about:blank';
+  $iframe.style.display = 'none';
+
+  // 5. Clear any shaka-injected containers
   $playerContainer.innerHTML = '';
-  // Re-append video to its original parent (player-frame) if it was moved
+
+  // 6. Re-ensure video is inside player-frame
   if (!$playerFrame.contains($video)) {
     $playerFrame.insertBefore($video, $playerOverlay);
   }
@@ -852,11 +857,13 @@ function playChannel(id, useProxy) {
   const ch = CHANNELS.find(c => c.id === id);
   if (!ch) return;
 
+  // ── Stop old stream first ──
+  destroyPlayers();
+
   activeId = id;
   proxyOn = useProxy;
   showOverlay(useProxy ? 'ROUTING VIA PROXY...' : 'TUNING: ' + ch.name.toUpperCase());
-
-  destroyPlayers();
+  renderChannels();
 
   // ── EMBED MODE ──
   if (ch.isEmbed) {
@@ -866,29 +873,36 @@ function playChannel(id, useProxy) {
     $iframe.onload = () => hideOverlay();
     setTimeout(hideOverlay, 3000);
     updateInfoBar(ch);
-    renderChannels();
     return;
   }
 
-  // ── VIDEO MODE ──
-  $iframe.style.display = 'none';
   $video.style.display = 'block';
   $video.volume = volume;
 
-  let streamUrl = ch.url;
-  if (useProxy) streamUrl = 'https://corsproxy.io/?' + encodeURIComponent(streamUrl);
-
-  // ── DASH MODE (Shaka Player) ──
+  // ── DASH + ClearKey DRM (Shaka) ──
   if (ch.isDash) {
     initDashPlayer(ch, useProxy);
     updateInfoBar(ch);
-    renderChannels();
     return;
   }
 
   // ── HLS MODE ──
+  let streamUrl = ch.url;
+  // noProxy channels skip the CORS proxy fallback (tokenised URLs break when proxied)
+  const canProxy = !ch.noProxy;
+
+  if (useProxy && canProxy) {
+    streamUrl = 'https://corsproxy.io/?' + encodeURIComponent(streamUrl);
+  }
+
   if (window.Hls && window.Hls.isSupported()) {
-    const hls = new window.Hls({ enableWorker: true, lowLatencyMode: true });
+    const hls = new window.Hls({
+      enableWorker: true,
+      lowLatencyMode: true,
+      xhrSetup: (xhr) => {
+        // No custom headers needed for these open streams
+      }
+    });
     hlsInstance = hls;
     hls.loadSource(streamUrl);
     hls.attachMedia($video);
@@ -898,7 +912,7 @@ function playChannel(id, useProxy) {
     });
     hls.on(window.Hls.Events.ERROR, (evt, data) => {
       if (data.fatal) {
-        if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !useProxy) {
+        if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !useProxy && canProxy) {
           showOverlay('CORS BLOCK - REROUTING...');
           setTimeout(() => playChannel(id, true), 1200);
         } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
@@ -909,95 +923,104 @@ function playChannel(id, useProxy) {
       }
     });
   } else if ($video.canPlayType('application/vnd.apple.mpegurl')) {
+    // Safari native HLS
     $video.src = streamUrl;
     $video.onloadedmetadata = () => { $video.play(); hideOverlay(); };
+    $video.onerror = () => showOverlay('STREAM UNREACHABLE');
   }
 
   updateInfoBar(ch);
-  renderChannels();
 }
 
 /* ══════════════════════════════════════════
-   DASH PLAYER INIT — FIXED
-   Correct Shaka API: new shaka.Player(videoElement)
-   NOT player.init() which doesn't exist in v4+
+   DASH / ClearKey DRM — SHAKA v5
+   Uses config extracted from HAR player.
+   ACAO: * so no proxy needed for otte CDN.
    ══════════════════════════════════════════ */
-function initDashPlayer(ch, useProxy) {
+async function initDashPlayer(ch, useProxy) {
   const Shaka = window.shaka;
   if (!Shaka || !Shaka.Player) {
-    showOverlay('DASH PLAYER NOT AVAILABLE');
+    showOverlay('SHAKA NOT LOADED');
     return;
   }
 
   $video.style.display = 'block';
 
-  // Shaka v4.7+ preferred API: create detached, then attach()
   let player;
   try {
     player = new Shaka.Player();
-    player.attach($video);
+    await player.attach($video);
   } catch(e) {
-    // Fallback for older shaka bundles
     try { player = new Shaka.Player($video); } catch(e2) {
-      console.error('Shaka init error:', e2);
       showOverlay('DASH INIT FAILED');
+      console.error(e2);
       return;
     }
   }
   shakaInstance = player;
 
-  // Only use config keys valid in Shaka v4 (smallGapLimit/jumpLargeGaps removed)
+  // Build DRM config
+  const drmConfig = ch.clearKeys ? { clearKeys: ch.clearKeys } : undefined;
+
   player.configure({
-    streaming: {
-      bufferingGoal: 30,
-      rebufferingGoal: 5,
-      bufferBehind: 60,
+    drm: drmConfig || {},
+    manifest: {
+      defaultPresentationDelay: 4,
       ignoreTextStreamFailures: true,
-      startAtSegmentBoundary: true,
+      dash: { autoCorrectDrift: true, ignoreMinBufferTime: true }
     },
     abr: {
       enabled: true,
-      defaultBandwidthEstimate: 5000000,
-    },
+      defaultBandwidthEstimate: 2000000,
+      restrictions: { maxHeight: 1080 }
+    }
   });
 
-  // Build the MPD URL — append index.mpd if URL ends in /
+  // Low-latency tuning (Shaka v5 API)
+  try {
+    player.configurationForLowLatency({
+      streaming: {
+        inaccurateManifestTolerance: 0,
+        segmentPrefetchLimit: 2,
+        updateIntervalSeconds: 0.1,
+        bufferingGoal: 10,
+        rebufferingGoal: 2,
+        bufferBehind: 30,
+        retryParameters: { baseDelay: 100, maxAttempts: 5, backoffFactor: 1.5, fuzzFactor: 0.5 }
+      }
+    });
+  } catch(e) { /* older bundle — skip */ }
+
   let mpdUrl = ch.url;
   if (mpdUrl.endsWith('/')) mpdUrl += 'index.mpd';
 
-  // Determine if this is an auth-protected stream (don't bother proxying 401s)
-  const isAuthProtected = ch.isAuthProtected === true;
-
-  if (useProxy && !isAuthProtected) {
+  // otte CDN has ACAO: * — direct load works, no proxy needed
+  if (useProxy && !ch.noProxy) {
     mpdUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpdUrl);
   }
 
-  player.load(mpdUrl)
-    .then(() => {
-      $video.volume = volume;
-      $video.play().catch(() => {});
-      hideOverlay();
-    })
-    .catch((err) => {
-      // Check HTTP status from Shaka error (code 1001 = BAD_HTTP_STATUS)
-      const httpStatus = err && err.data && err.data[1];
-      const isAuthError = httpStatus === 401 || httpStatus === 403;
+  try {
+    await player.load(mpdUrl);
+    $video.volume = volume;
+    $video.play().catch(() => {});
+    hideOverlay();
+  } catch(err) {
+    const httpStatus = err && err.data && err.data[1];
+    const isAuthError = httpStatus === 401 || httpStatus === 403;
 
-      if (isAuthError) {
-        // Token-gated stream — no point retrying, show clear message
-        showOverlay('STREAM REQUIRES AUTH (401/403)');
-        console.warn('DASH auth error — stream is token-gated:', ch.url);
-        return;
-      }
+    if (isAuthError) {
+      showOverlay('STREAM REQUIRES AUTH (401/403)');
+      return;
+    }
 
-      if (!useProxy && !isAuthProtected) {
-        showOverlay('DASH CORS ERROR - REROUTING...');
-        setTimeout(() => playChannel(ch.id, true), 1500);
-      } else {
-        showOverlay('DASH STREAM UNREACHABLE');
-        console.error('DASH load error:', err);
-      }
-    });
+    if (!useProxy) {
+      showOverlay('DASH CORS - REROUTING...');
+      setTimeout(() => playChannel(ch.id, true), 1500);
+    } else {
+      showOverlay('DASH STREAM UNREACHABLE');
+      console.error('Shaka load error:', err);
+    }
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -1018,7 +1041,7 @@ function updateInfoBar(ch) {
 $muteBtn.addEventListener('click', () => {
   $video.muted = !$video.muted;
   isMuted = $video.muted;
-  $muteBtn.innerHTML = `<i class="fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'} ${isMuted ? 'muted-icon' : ''}"></i>`;
+  $muteBtn.innerHTML = `<i class="fa-solid ${isMuted ? 'fa-volume-xmark muted-icon' : 'fa-volume-high'}"></i>`;
 });
 
 $volSlider.addEventListener('input', (e) => {
@@ -1033,44 +1056,34 @@ $volSlider.addEventListener('input', (e) => {
 });
 
 /* ══════════════════════════════════════════
-   FULLSCREEN — FIXED
-   Target player-frame div (not video element).
-   This covers embed iframe + video + overlay together.
+   FULLSCREEN — targets player-frame div
    ══════════════════════════════════════════ */
 $fsBtn.addEventListener('click', () => {
   const el = $playerFrame;
-  if (!document.fullscreenElement &&
-      !document.webkitFullscreenElement &&
-      !document.mozFullScreenElement) {
-    // Enter fullscreen
-    if (el.requestFullscreen)             el.requestFullscreen();
-    else if (el.webkitRequestFullscreen)  el.webkitRequestFullscreen();
-    else if (el.mozRequestFullScreen)     el.mozRequestFullScreen();
-    else if (el.msRequestFullscreen)      el.msRequestFullscreen();
+  if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement) {
+    if (el.requestFullscreen)            el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
     $fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
   } else {
-    // Exit fullscreen
-    if (document.exitFullscreen)             document.exitFullscreen();
-    else if (document.webkitExitFullscreen)  document.webkitExitFullscreen();
-    else if (document.mozCancelFullScreen)   document.mozCancelFullScreen();
-    else if (document.msExitFullscreen)      document.msExitFullscreen();
+    if (document.exitFullscreen)            document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.mozCancelFullScreen)  document.mozCancelFullScreen();
     $fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
   }
 });
 
-// Sync icon when user presses Esc to exit fullscreen
-document.addEventListener('fullscreenchange', syncFsIcon);
-document.addEventListener('webkitfullscreenchange', syncFsIcon);
-document.addEventListener('mozfullscreenchange', syncFsIcon);
 function syncFsIcon() {
   const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
   $fsBtn.innerHTML = `<i class="fa-solid ${inFS ? 'fa-compress' : 'fa-expand'}"></i>`;
 }
+document.addEventListener('fullscreenchange', syncFsIcon);
+document.addEventListener('webkitfullscreenchange', syncFsIcon);
+document.addEventListener('mozfullscreenchange', syncFsIcon);
 
 // Hover controls
-$playerFrame.addEventListener('mouseenter', () => { showControls = true; $hoverControls.classList.add('visible'); });
-$playerFrame.addEventListener('mouseleave', () => { showControls = false; $hoverControls.classList.remove('visible'); });
-// Touch: tap to toggle
+$playerFrame.addEventListener('mouseenter', () => { $hoverControls.classList.add('visible'); });
+$playerFrame.addEventListener('mouseleave', () => { $hoverControls.classList.remove('visible'); });
 $playerFrame.addEventListener('touchstart', (e) => {
   if (e.target.closest('#hover-controls')) return;
   showControls = !showControls;
@@ -1078,7 +1091,7 @@ $playerFrame.addEventListener('touchstart', (e) => {
 }, { passive: true });
 
 /* ══════════════════════════════════════════
-   ESPN DATA
+   ESPN SCOREBOARD
    ══════════════════════════════════════════ */
 async function fetchScoreboard() {
   try {
@@ -1105,7 +1118,6 @@ function renderScoreboard() {
     $scoreboardList.innerHTML = `<div class="no-data"><i class="fa-solid fa-futbol"></i><p>No live data</p></div>`;
     return;
   }
-
   $scoreboardList.innerHTML = liveEvents.map(ev => {
     const c = ev.competitions[0];
     const t1 = c.competitors[0];
@@ -1139,26 +1151,23 @@ function renderStandings() {
     $standingsGrid.innerHTML = `<div class="no-data"><i class="fa-solid fa-circle-notch" style="animation:spin 1s linear infinite"></i><p>Loading standings...</p></div>`;
     return;
   }
-
   $standingsGrid.innerHTML = standings.map(group => {
     const teams = (group.standings && group.standings.entries) || [];
     return `
       <div class="group-card-glass">
         <h3 class="group-title">${group.name}</h3>
         <table class="group-table">
-          <thead>
-            <tr>
-              <th colspan="2">Team</th>
-              <th>W</th><th>D</th><th>L</th><th>Pts</th>
-            </tr>
-          </thead>
+          <thead><tr><th colspan="2">Team</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr></thead>
           <tbody>
             ${teams.map((t, ti) => {
-              const getStat = (name) => (t.stats && t.stats.find(s => s.name === name)) ? t.stats.find(s => s.name === name).value : '—';
+              const getStat = (name) => {
+                const s = t.stats && t.stats.find(s => s.name === name);
+                return s ? s.value : '—';
+              };
               const logo = (t.team.logos && t.team.logos[0]) ? t.team.logos[0].href : '';
               return `
                 <tr>
-                  <td style="padding-right:4px;color:var(--text-secondary)">${ti + 1}</td>
+                  <td style="padding-right:4px;color:var(--text-secondary)">${ti+1}</td>
                   <td><div class="team-cell">${logo ? `<img src="${logo}" onerror="this.style.display='none'">` : ''}<span>${t.team.displayName}</span></div></td>
                   <td>${getStat('wins')}</td>
                   <td>${getStat('ties')}</td>
@@ -1179,12 +1188,8 @@ function renderStandings() {
    ══════════════════════════════════════════ */
 function setView(view) {
   currentView = view;
-  document.querySelectorAll('.nav-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.view === view);
-  });
-  document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(t => {
-    t.classList.toggle('active', t.dataset.view === view);
-  });
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === view));
   if (view === 'tv') {
     $tvView.style.display = '';
     $standingsView.classList.remove('active');
@@ -1195,7 +1200,7 @@ function setView(view) {
 }
 
 /* ══════════════════════════════════════════
-   SIDEBAR TOGGLE (MOBILE)
+   SIDEBAR
    ══════════════════════════════════════════ */
 function toggleSidebar(open) {
   sidebarOpen = open;
@@ -1203,9 +1208,6 @@ function toggleSidebar(open) {
   $sidebarOverlay.classList.toggle('show', open);
 }
 
-/* ══════════════════════════════════════════
-   RESPONSIVE CHECK
-   ══════════════════════════════════════════ */
 function checkMobile() {
   isMobile = window.innerWidth <= 900;
   $mobileNav.classList.toggle('show', isMobile);
@@ -1215,28 +1217,13 @@ function checkMobile() {
 /* ══════════════════════════════════════════
    EVENT LISTENERS
    ══════════════════════════════════════════ */
-
-// Header nav tabs
-document.querySelectorAll('.nav-tab').forEach(tab => {
-  tab.addEventListener('click', () => setView(tab.dataset.view));
-});
-
-// Mobile nav
+document.querySelectorAll('.nav-tab').forEach(tab => tab.addEventListener('click', () => setView(tab.dataset.view)));
 document.getElementById('mob-channels').addEventListener('click', () => toggleSidebar(true));
-document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(btn => {
-  btn.addEventListener('click', () => setView(btn.dataset.view));
-});
-
-// Menu button
+document.querySelectorAll('.mobile-nav-btn[data-view]').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
 $menuBtn.addEventListener('click', () => toggleSidebar(!sidebarOpen));
-
-// Sidebar overlay
 $sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
-
-// Search
 $searchInput.addEventListener('input', (e) => { searchQ = e.target.value; renderChannels(); });
 
-// Category chips (delegated)
 $catChips.addEventListener('click', (e) => {
   const chip = e.target.closest('.cat-chip');
   if (!chip) return;
@@ -1245,16 +1232,15 @@ $catChips.addEventListener('click', (e) => {
   renderChannels();
 });
 
-// Channel list (delegated)
 $channelList.addEventListener('click', (e) => {
   const item = e.target.closest('.channel-item');
   if (!item) return;
   const id = item.dataset.id;
+  if (id === activeId) return; // already playing
   playChannel(id);
   if (isMobile) toggleSidebar(false);
 });
 
-// Resize
 window.addEventListener('resize', checkMobile);
 
 /* ══════════════════════════════════════════
@@ -1271,7 +1257,8 @@ fetchScoreboard();
 fetchStandings();
 setInterval(fetchScoreboard, 30000);
 
-setTimeout(() => playChannel('trt-default'), 500);
+// Auto-play TRT Alt on load
+setTimeout(() => playChannel('trt-alt'), 500);
 </script>
 </body>
 </html>
