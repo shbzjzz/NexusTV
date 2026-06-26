@@ -337,19 +337,29 @@ body::after {
 .player-frame:-webkit-full-screen { width: 100vw; height: 100vh; border-radius: 0; }
 .player-frame:-moz-full-screen    { width: 100vw; height: 100vh; border-radius: 0; }
 .player-frame:fullscreen          { width: 100vw; height: 100vh; border-radius: 0; }
+.player-frame:fullscreen #tv-iframe,
+.player-frame:-webkit-full-screen #tv-iframe,
+.player-frame:-moz-full-screen #tv-iframe { border-radius: 0; }
 
 .player-inner-glow {
   position: absolute; inset: 0; border-radius: var(--radius-lg); pointer-events: none; z-index: 5;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
 }
+/* Hide glow border in fullscreen so embeds fill edge-to-edge */
+.player-frame:fullscreen .player-inner-glow,
+.player-frame:-webkit-full-screen .player-inner-glow,
+.player-frame:-moz-full-screen .player-inner-glow { display: none; }
 #player-container { position: absolute; inset: 0; z-index: 1; }
 #tv-video {
   position: absolute; inset: 0; width: 100%; height: 100%; border: none;
   border-radius: var(--radius-lg); object-fit: contain;
 }
+.player-frame:fullscreen #tv-video,
+.player-frame:-webkit-full-screen #tv-video,
+.player-frame:-moz-full-screen #tv-video { border-radius: 0; }
 #tv-iframe {
   position: absolute; inset: 0; width: 100%; height: 100%; border: none;
-  border-radius: var(--radius-lg); display: none;
+  border-radius: 0; display: none; z-index: 10;
 }
 
 /* Overlay */
@@ -359,6 +369,9 @@ body::after {
   border-radius: var(--radius-lg); transition: opacity 0.5s;
   background: rgba(4,11,20,0.9); backdrop-filter: blur(8px);
 }
+.player-frame:fullscreen #player-overlay,
+.player-frame:-webkit-full-screen #player-overlay,
+.player-frame:-moz-full-screen #player-overlay { border-radius: 0; }
 #player-overlay.hidden { opacity: 0; pointer-events: none; }
 .overlay-spinner {
   width: 40px; height: 40px; border-radius: 50%;
@@ -560,7 +573,7 @@ body::after {
       <div id="sidebar-header">
         <div class="sidebar-title-row">
           <h2 class="sidebar-title"><i class="fa-solid fa-satellite-dish"></i> Channels</h2>
-          <span class="channel-count" id="ch-count">22</span>
+          <span class="channel-count" id="ch-count">25</span>
         </div>
         <div class="search-box">
           <i class="fa-solid fa-search"></i>
@@ -677,6 +690,24 @@ const CHANNELS = [
     url: 'https://live.bb6.dpdns.org/albaplayer/ch1/?serv=2'
   },
   {
+    id: 'wc-cf-embed', name: 'WC Live (CF Stream)', category: 'World Cup 2026',
+    logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
+    number: '16', isEmbed: true,
+    url: 'https://veotest.bbvplayline1a.com/video.html?url=https://customer-pxqzisbdvm40exge.cloudflarestream.com/eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk5MmEwZmVkNzE0NjY3OTI5MmJkNWEyNzQxZTI3OWIyIn0.eyJraWQiOiI5OTJhMGZlZDcxNDY2NzkyOTJiZDVhMjc0MWUyNzliMiIsInN1YiI6ImNiYzM2YmU1OTVhODA3ZTk0YzVlZWE2ODZiYTQ2YTlkIiwiaWF0Ijox'
+  },
+  {
+    id: 'wc-alba2-embed', name: 'WC Live (Alba 2)', category: 'World Cup 2026',
+    logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
+    number: '17', isEmbed: true,
+    url: 'https://live.bb6.dpdns.org/albaplayer/ch1/?serv=3'
+  },
+  {
+    id: 'wc-alba-ch2-embed', name: 'WC Live (Alba Ch2)', category: 'World Cup 2026',
+    logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
+    number: '18', isEmbed: true,
+    url: 'https://live.bb6.dpdns.org/albaplayer/ch2/?serv=1'
+  },
+  {
     id: 'wc-6thlink-embed', name: 'WC Match (HQ Live)', category: 'World Cup 2026',
     logo: 'https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png',
     number: '16',
@@ -756,7 +787,7 @@ const CHANNELS = [
     isDash: true,
     url: 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd',
     drmKeys: { '4f4c3a9912ea752e88f4497864a1bc8b': '278128004fe8c6ffb2cd2a0c154a241a' }
-  },
+  }
 
   /* ═══ WORLD CUP 2026 — EMBED PLAYERS (same method as blogspot) ═══ */
   {
@@ -765,7 +796,7 @@ const CHANNELS = [
     number: '12', isEmbed: true,
     url: 'https://mpd26wc11.blogspot.com/p/match01.html'
   },
-  
+  ,
   {
     id: 'wc-ard', name: 'ARD Das Erste (DE)', category: 'World Cup 2026',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/ARD-Logo_2021.svg/240px-ARD-Logo_2021.svg.png',
@@ -949,9 +980,10 @@ function playChannel(id, useProxy) {
   if (ch.isEmbed) {
     $video.style.display = 'none';
     $iframe.style.display = 'block';
+    $iframe.style.borderRadius = '0';
+    hideOverlay(); // hide immediately for embeds — no loading overlay blocking clicks
     $iframe.src = ch.url;
     $iframe.onload = () => hideOverlay();
-    setTimeout(hideOverlay, 3000);
     updateInfoBar(ch);
     renderChannels();
     return;
